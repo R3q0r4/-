@@ -1,0 +1,71 @@
+section .data
+    message db "FE2;9C]", 0
+    key db "SECRET", 0
+    len equ $-message
+
+section .bss
+    cipher resb len
+
+section .text
+    global _start
+
+_start:
+    xor eax, eax
+    xor ebx, ebx
+    xor ecx, ecx
+
+
+    mov ebx, key
+    dec ebx 
+    sub ebx, key 
+
+    
+    mov ecx, message
+    mov edi, cipher
+    mov esi, key
+.loop:
+    cmp byte [ecx], 0 
+    je .endloop
+
+    mov al, [ecx]
+    mov dl, [esi]
+    add esi, 1
+    cmp byte [esi], 0 
+    je .reset_key
+
+    sub al, '!' 
+    sub dl, '!'
+    add al, dl 
+    and al, 0x7F 
+    add al, '!' 
+
+    mov [edi], al
+    add edi, 1
+    add ecx, 1
+    jmp .loop
+
+.reset_key:
+    sub al, '!' 
+    sub dl, '!'
+    add al, dl 
+    and al, 0x7F 
+    add al, '!' 
+
+    mov [edi], al
+    add edi, 1
+    add ecx, 1
+    mov esi, key 
+    jmp .loop
+
+.endloop:
+     
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, cipher
+    mov edx, len
+    int 0x80
+
+    
+    mov eax, 1
+    xor ebx, ebx
+    int 0x80
